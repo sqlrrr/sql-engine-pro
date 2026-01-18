@@ -182,4 +182,31 @@ export const newsEvents = mysqlTable("news_events", {
 export type NewsEvent = typeof newsEvents.$inferSelect;
 export type InsertNewsEvent = typeof newsEvents.$inferInsert;
 
+// Trading Configuration Table
+export const tradingConfigs = mysqlTable("trading_configs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  enabled: boolean("enabled").default(false).notNull(),
+  maxPositionSize: decimal("maxPositionSize", { precision: 12, scale: 2 }).default("1000").notNull(),
+  maxLeverage: int("maxLeverage").default(5).notNull(),
+  stopLossPercent: decimal("stopLossPercent", { precision: 5, scale: 2 }).default("2").notNull(),
+  takeProfitPercent: decimal("takeProfitPercent", { precision: 5, scale: 2 }).default("5").notNull(),
+  minConfidence: int("minConfidence").default(60).notNull(),
+  tradingPairs: text("tradingPairs").default(JSON.stringify([])).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TradingConfig = typeof tradingConfigs.$inferSelect;
+export type InsertTradingConfig = typeof tradingConfigs.$inferInsert;
+
+// Helper to parse trading pairs
+export function parseTradingPairs(data: TradingConfig | InsertTradingConfig): string[] {
+  try {
+    return typeof data.tradingPairs === 'string' ? JSON.parse(data.tradingPairs) : data.tradingPairs;
+  } catch {
+    return [];
+  }
+}
+
 // TODO: Add your additional tables here
