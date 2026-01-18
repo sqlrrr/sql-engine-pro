@@ -203,7 +203,11 @@ export type InsertTradingConfig = typeof tradingConfigs.$inferInsert;
 // Helper to parse trading pairs
 export function parseTradingPairs(data: TradingConfig | InsertTradingConfig): string[] {
   try {
-    return typeof data.tradingPairs === 'string' ? JSON.parse(data.tradingPairs) : data.tradingPairs;
+    const pairs = data.tradingPairs;
+    if (typeof pairs === 'string') {
+      return JSON.parse(pairs);
+    }
+    return Array.isArray(pairs) ? pairs : [];
   } catch {
     return [];
   }
