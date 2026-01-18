@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL ENGINE PRO - Dashboard</title>
+    <script src="https://unpkg.com/lightweight-charts@4/dist/lightweight-charts.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%); color: #fff; }
+        
+        .container { display: flex; height: 100vh; }
+        
+        .sidebar { width: 250px; background: #0a0a0a; border-right: 2px solid #ffd700; padding: 20px; overflow-y: auto; }
+        .sidebar h2 { color: #ffd700; margin-bottom: 30px; font-size: 18px; }
+        .nav-item { padding: 12px 15px; margin: 8px 0; border-radius: 6px; cursor: pointer; transition: all 0.3s; border-left: 3px solid transparent; }
+        .nav-item:hover { background: #1a1a1a; border-left-color: #ffd700; }
+        .nav-item.active { background: #ffd700; color: #000; border-left-color: #ffd700; font-weight: bold; }
+        
+        .main-content { flex: 1; display: flex; flex-direction: column; }
+        
+        .header { background: #0a0a0a; border-bottom: 2px solid #ffd700; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { color: #ffd700; font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .logout-btn { background: #ff4444; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        
+        .content { flex: 1; overflow-y: auto; padding: 30px; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); border: 2px solid #ffd700; padding: 20px; border-radius: 8px; }
+        .stat-label { color: #999; font-size: 14px; margin-bottom: 10px; }
+        .stat-value { color: #ffd700; font-size: 28px; font-weight: bold; }
+        .stat-change { color: #4ade80; font-size: 12px; margin-top: 8px; }
+        
+        .chart-container { background: #1a1a1a; border: 2px solid #ffd700; border-radius: 8px; padding: 20px; margin-bottom: 30px; }
+        .chart-title { color: #ffd700; font-size: 18px; margin-bottom: 15px; font-weight: bold; }
+        #chart { width: 100%; height: 400px; }
+        
+        .signals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .signal-card { background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); border: 2px solid #ffd700; padding: 20px; border-radius: 8px; }
+        .signal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .signal-name { color: #ffd700; font-weight: bold; }
+        .signal-badge { padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .signal-buy { background: #4ade80; color: #000; }
+        .signal-sell { background: #ff4444; color: #fff; }
+        .signal-hold { background: #ffa500; color: #000; }
+        .signal-price { color: #999; font-size: 14px; margin-bottom: 10px; }
+        .signal-confidence { color: #ffd700; font-size: 16px; font-weight: bold; }
+        
+        .hidden { display: none; }
+        
+        @media (max-width: 768px) {
+            .container { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 2px solid #ffd700; display: flex; gap: 10px; overflow-x: auto; }
+            .nav-item { white-space: nowrap; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>🚀 SQL ENGINE</h2>
+            <div class="nav-item active" onclick="showTab('dashboard')">📊 Dashboard</div>
+            <div class="nav-item" onclick="showTab('signals')">⚡ Signals</div>
+            <div class="nav-item" onclick="showTab('whales')">🐋 Whales</div>
+            <div class="nav-item" onclick="showTab('sentiment')">💬 Sentiment</div>
+            <div class="nav-item" onclick="showTab('onchain')">⛓️ On-Chain</div>
+            <div class="nav-item" onclick="showTab('solana')">🔥 Solana</div>
+            <div class="nav-item" onclick="showTab('trading')">📈 Trading</div>
+            <div class="nav-item" onclick="showTab('settings')">⚙️ Settings</div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h1>SQL ENGINE PRO - Advanced Crypto Intelligence</h1>
+                <div class="user-info">
+                    <span>👤 Trader</span>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="content">
+                <!-- Dashboard Tab -->
+                <div id="dashboard" class="tab-content">
+                    <h2 style="color: #ffd700; margin-bottom: 20px;">📊 Dashboard Overview</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Portfolio Value</div>
+                            <div class="stat-value">$125,450</div>
+                            <div class="stat-change">↑ +$12,340 (10.9%)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Active Positions</div>
+                            <div class="stat-value">12</div>
+                            <div class="stat-change">3 BUY | 2 SELL | 7 HOLD</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Win Rate</div>
+                            <div class="stat-value">72.5%</div>
+                            <div class="stat-change">↑ +2.3% this week</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total P&L</div>
+                            <div class="stat-value">+$45,230</div>
+                            <div class="stat-change">🎯 Target: $50K</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-title">Bitcoin (BTC/USD) - Real-time Chart</div>
+                        <div id="chart"></div>
+                    </div>
+                </div>
+                
+                <!-- Signals Tab -->
+                <div id="signals" class="tab-content hidden">
+                    <h2 style="color: #ffd700; margin-bottom: 20px;">⚡ AI Trading Signals</h2>
+                    <div class="signals-grid">
+                        <div class="signal-card">
+                            <div class="signal-header">
+                                <div class="signal-name">Bitcoin (BTC)</div>
+                                <div class="signal-badge signal-buy">BUY</div>
+                            </div>
+                            <div class="signal-price">Current: $42,350 | Target: $45,000</div>
+                            <div class="signal-confidence">Confidence: 85%</div>
+                        </div>
+                        <div class="signal-card">
+                            <div class="signal-header">
+                                <div class="signal-name">Ethereum (ETH)</div>
+                                <div class="signal-badge signal-hold">HOLD</div>
+                            </div>
+                            <div class="signal-price">Current: $2,280 | Range: $2,200-$2,350</div>
+                            <div class="signal-confidence">Confidence: 68%</div>
+                        </div>
+                        <div class="signal-card">
+                            <div class="signal-header">
+                                <div class="signal-name">Solana (SOL)</div>
+                                <div class="signal-badge signal-buy">BUY</div>
+                            </div>
+                            <div class="signal-price">Current: $195.40 | Target: $220</div>
+                            <div class="signal-confidence">Confidence: 78%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Whales Tab -->
+                <div id="whales" class="tab-content hidden">
+                    <h2 style="color: #ffd700; margin-bottom: 20px;">🐋 Whale Tracking</h2>
+                    <div class="signals-grid">
+                        <div class="signal-card">
+                            <div class="signal-header">
+                                <div class="signal-name">Large BTC Transfer</div>
+                                <div class="signal-badge signal-buy">INFLOW</div>
+                            </div>
+                            <div class="signal-price">Amount: 2,500 BTC ($105.8M)</div>
+                            <div class="signal-confidence">From: Binance → Unknown Wallet</div>
+                        </div>
+                        <div class="signal-card">
+                            <div class="signal-header">
+                                <div class="signal-name">ETH Whale Activity</div>
+                                <div class="signal-badge signal-sell">OUTFLOW</div>
+                            </div>
+                            <div class="signal-price">Amount: 50,000 ETH ($114M)</div>
+                            <div class="signal-confidence">From: Kraken → Cold Wallet</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sentiment Tab -->
+                <div id="sentiment" class="tab-content hidden">
+                    <h2 style="color: #ffd700; margin-bottom: 20px;">💬 Social Sentiment Analysis</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Fear & Greed Index</div>
+                            <div class="stat-value">72</div>
+                            <div class="stat-change">📈 Greed (Bullish)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Twitter Sentiment</div>
+                            <div class="stat-value">+68%</div>
+                            <div class="stat-change">Positive mentions ↑</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Telegram Activity</div>
+                            <div class="stat-value">+45K</div>
+                            <div class="stat-change">Messages in 24h</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Discord Buzz</div>
+                            <div class="stat-value">+82%</div>
+                            <div class="stat-change">Community engagement ↑</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- On-Chain Tab -->
+                <div id="onchain" class="tab-content hidden">
+                    <h2 style="color: #ffd700; margin-bottom: 20px;">⛓️ On-Chain Analysis</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Exchange Inflow</div>
+                            <div class="stat-value">-$2.3B</div>
+                            <div class="stat-change">Bearish: Coins leaving exchanges</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">USDT Flow</div>
+                            <div class="stat-value">+$450M</div>
+                            <div class="stat-change">Bullish: Stablecoin accumulation</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Active Addresses</div>
+                            <div class="stat-value">1.2M</div>
+                            <div class="stat-change">↑ +15% this week</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Network Value</div>
+                            <div class="stat-value">$850B</div>
+                            <div class="stat-change">All cryptocurrencies</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Solana Tab -->
+                <div id="solana" class="tab-content hidden">
+                    <h2 style="color: #ffd700; margin-bottom: 20px;">🔥 Solana Deep Analysis</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">SOL Price</div>
+                            <div class="stat-value">$195.40</div>
+                            <div class="stat-change">↑ +8.5% (24h)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">DEX Volume</div>
+                            <div class="stat-value">$1.2B</div>
+                            <div class="stat-change">Jupiter, Raydium, Orca</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Mempool Activity</div>
+                            <div class="stat-value">+450K</div>
+                            <div class="stat-change">Pending transactions</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Token Unlocks</div>
+                            <div class="stat-value">-$2.1M</div>
+                            <div class="stat-change">Next 7 days</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Trading Tab -->
+                <div id="trading" class="tab-content hidden">
+                    <h2 style="color: #ffd700; margin-bottom: 20px;">📈 Auto-Trading Control</h2>
+                    <div class="stat-card" style="max-width: 500px;">
+                        <div style="margin-bottom: 20px;">
+                            <label style="color: #ffd700; font-weight: bold;">Exchange Connection</label>
+                            <input type="text" placeholder="Enter your exchange API key" style="width: 100%; padding: 10px; margin-top: 10px; background: #0a0a0a; border: 1px solid #ffd700; color: #fff; border-radius: 4px;">
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="color: #ffd700; font-weight: bold;">Auto-Trading Status</label>
+                            <div style="margin-top: 10px;">
+                                <input type="checkbox" id="autoTrade"> <label for="autoTrade" style="color: #ccc;">Enable Auto-Trading with AI Signals</label>
+                            </div>
+                        </div>
+                        <button style="background: #ffd700; color: #000; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%;">Connect Exchange</button>
+                    </div>
+                </div>
+                
+                <!-- Settings Tab -->
+                <div id="settings" class="tab-content hidden">
+                    <h2 style="color: #ffd700; margin-bottom: 20px;">⚙️ Settings</h2>
+                    <div class="stat-card" style="max-width: 500px;">
+                        <div style="margin-bottom: 20px;">
+                            <label style="color: #ffd700; font-weight: bold;">Risk Level</label>
+                            <select style="width: 100%; padding: 10px; margin-top: 10px; background: #0a0a0a; border: 1px solid #ffd700; color: #fff; border-radius: 4px;">
+                                <option>Low (2% per trade)</option>
+                                <option>Medium (5% per trade)</option>
+                                <option>High (10% per trade)</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="color: #ffd700; font-weight: bold;">Stop Loss (%)</label>
+                            <input type="number" value="5" style="width: 100%; padding: 10px; margin-top: 10px; background: #0a0a0a; border: 1px solid #ffd700; color: #fff; border-radius: 4px;">
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="color: #ffd700; font-weight: bold;">Take Profit (%)</label>
+                            <input type="number" value="15" style="width: 100%; padding: 10px; margin-top: 10px; background: #0a0a0a; border: 1px solid #ffd700; color: #fff; border-radius: 4px;">
+                        </div>
+                        <button style="background: #ffd700; color: #000; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%;">Save Settings</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize Lightweight Charts
+        const chartContainer = document.getElementById('chart');
+        const chart = LightweightCharts.createChart(chartContainer, {
+            width: chartContainer.clientWidth,
+            height: 400,
+            layout: { background: { color: '#1a1a1a' }, textColor: '#ffd700' },
+            timeScale: { timeVisible: true, secondsVisible: false },
+            grid: { horzLines: { color: '#333' }, vertLines: { color: '#333' } },
+        });
+        
+        const candlestickSeries = chart.addCandlestickSeries({
+            upColor: '#4ade80',
+            downColor: '#ff4444',
+            borderUpColor: '#4ade80',
+            borderDownColor: '#ff4444',
+            wickUpColor: '#4ade80',
+            wickDownColor: '#ff4444',
+        });
+        
+        // Sample BTC data
+        const data = [
+            { time: '2025-01-15', open: 40000, high: 41500, low: 39800, close: 41200 },
+            { time: '2025-01-16', open: 41200, high: 42000, low: 40900, close: 41800 },
+            { time: '2025-01-17', open: 41800, high: 43000, low: 41500, close: 42350 },
+            { time: '2025-01-18', open: 42350, high: 43500, low: 42000, close: 43200 },
+        ];
+        
+        candlestickSeries.setData(data);
+        chart.timeScale().fitContent();
+        
+        // Tab switching
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.getElementById(tabName).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        
+        function logout() {
+            alert('Logged out successfully!');
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>
