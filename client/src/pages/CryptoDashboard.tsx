@@ -180,8 +180,8 @@ export default function CryptoDashboard() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">🚀 Crypto Intelligence Pro</h1>
-            <p className="text-sm text-slate-600">Real-time market analysis & AI trading signals</p>
+            <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">⚙️ SQL ENGINE PRO</h1>
+            <p className="text-sm text-slate-600">Advanced Crypto Intelligence Terminal | Real-time Analysis & AI Signals</p>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-slate-600">{user?.name || 'User'}</span>
