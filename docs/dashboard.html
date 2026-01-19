@@ -27,6 +27,9 @@
         .error { color: #ff4444; }
         .positive { color: #4ade80; }
         .negative { color: #ff4444; }
+        .status-badge { display: inline-block; padding: 5px 10px; border-radius: 3px; font-size: 12px; margin-top: 5px; }
+        .status-online { background: #4ade80; color: #000; }
+        .status-offline { background: #ff4444; color: #fff; }
     </style>
 </head>
 <body>
@@ -39,6 +42,10 @@
             <div class="nav-item">💬 Sentiment</div>
             <div class="nav-item">⛓️ On-Chain</div>
             <div class="nav-item">🔥 Solana</div>
+            <div style="margin-top: 30px; padding: 10px; background: #2a2a2a; border-radius: 4px; font-size: 12px;">
+                <div>Backend Status:</div>
+                <div id="backend-status" class="status-badge status-offline">Checking...</div>
+            </div>
         </div>
         <div class="main">
             <div class="header">
@@ -46,41 +53,41 @@
                 <button class="logout-btn">Logout</button>
             </div>
             <div class="content">
-                <h2 style="color: #ffd700; margin-bottom: 20px;">💰 Live Crypto Prices</h2>
+                <h2 style="color: #ffd700; margin-bottom: 20px;">💰 Live Crypto Prices (Real Data)</h2>
                 <div class="grid">
                     <div class="card">
                         <h3>Bitcoin (BTC)</h3>
-                        <div class="card-value" id="btc-price">$0</div>
-                        <div class="card-change" id="btc-change">Loading...</div>
+                        <div class="card-value" id="btc-price">Loading...</div>
+                        <div class="card-change" id="btc-change">-</div>
                     </div>
                     <div class="card">
                         <h3>Ethereum (ETH)</h3>
-                        <div class="card-value" id="eth-price">$0</div>
-                        <div class="card-change" id="eth-change">Loading...</div>
+                        <div class="card-value" id="eth-price">Loading...</div>
+                        <div class="card-change" id="eth-change">-</div>
                     </div>
                     <div class="card">
                         <h3>Solana (SOL)</h3>
-                        <div class="card-value" id="sol-price">$0</div>
-                        <div class="card-change" id="sol-change">Loading...</div>
+                        <div class="card-value" id="sol-price">Loading...</div>
+                        <div class="card-change" id="sol-change">-</div>
                     </div>
                 </div>
 
-                <h2 style="color: #ffd700; margin: 30px 0 20px 0;">⚡ AI Trading Signals</h2>
+                <h2 style="color: #ffd700; margin: 30px 0 20px 0;">⚡ AI Trading Signals (Real Data)</h2>
                 <div class="grid">
                     <div class="card">
                         <h3 id="signal-btc-symbol">BTC Signal</h3>
-                        <div class="card-value" id="signal-btc-action">HOLD</div>
-                        <div class="card-change" id="signal-btc-score">Score: 50</div>
+                        <div class="card-value" id="signal-btc-action">Loading...</div>
+                        <div class="card-change" id="signal-btc-score">-</div>
                     </div>
                     <div class="card">
                         <h3 id="signal-eth-symbol">ETH Signal</h3>
-                        <div class="card-value" id="signal-eth-action">HOLD</div>
-                        <div class="card-change" id="signal-eth-score">Score: 50</div>
+                        <div class="card-value" id="signal-eth-action">Loading...</div>
+                        <div class="card-change" id="signal-eth-score">-</div>
                     </div>
                     <div class="card">
                         <h3 id="signal-sol-symbol">SOL Signal</h3>
-                        <div class="card-value" id="signal-sol-action">HOLD</div>
-                        <div class="card-change" id="signal-sol-score">Score: 50</div>
+                        <div class="card-value" id="signal-sol-action">Loading...</div>
+                        <div class="card-change" id="signal-sol-score">-</div>
                     </div>
                 </div>
 
@@ -93,34 +100,54 @@
     </div>
 
     <script>
-        // Real API calls to CoinGecko and Binance
+        // Backend API URL - Change this to your deployed backend
+        const API_BASE = 'http://localhost:3000/api';
+        
+        // Alternative: If backend is deployed, use:
+        // const API_BASE = 'https://your-backend-url.com/api';
+
+        async function checkBackendStatus() {
+            try {
+                const response = await fetch(API_BASE + '/health', { timeout: 5000 });
+                if (response.ok) {
+                    document.getElementById('backend-status').textContent = '✓ Online';
+                    document.getElementById('backend-status').className = 'status-badge status-online';
+                    return true;
+                }
+            } catch (e) {
+                console.error('Backend offline:', e);
+            }
+            document.getElementById('backend-status').textContent = '✗ Offline';
+            document.getElementById('backend-status').className = 'status-badge status-offline';
+            return false;
+        }
+
         async function getPrices() {
             try {
-                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true');
+                const response = await fetch(API_BASE + '/prices?symbols=bitcoin,ethereum,solana');
                 const data = await response.json();
                 
-                // Bitcoin
-                const btcPrice = data.bitcoin.usd;
-                const btcChange = data.bitcoin.usd_24h_change;
-                document.getElementById('btc-price').textContent = '$' + btcPrice.toLocaleString('en-US', {maximumFractionDigits: 2});
-                document.getElementById('btc-change').textContent = (btcChange > 0 ? '↑' : '↓') + ' ' + Math.abs(btcChange).toFixed(2) + '%';
-                document.getElementById('btc-change').className = 'card-change ' + (btcChange > 0 ? 'positive' : 'negative');
-
-                // Ethereum
-                const ethPrice = data.ethereum.usd;
-                const ethChange = data.ethereum.usd_24h_change;
-                document.getElementById('eth-price').textContent = '$' + ethPrice.toLocaleString('en-US', {maximumFractionDigits: 2});
-                document.getElementById('eth-change').textContent = (ethChange > 0 ? '↑' : '↓') + ' ' + Math.abs(ethChange).toFixed(2) + '%';
-                document.getElementById('eth-change').className = 'card-change ' + (ethChange > 0 ? 'positive' : 'negative');
-
-                // Solana
-                const solPrice = data.solana.usd;
-                const solChange = data.solana.usd_24h_change;
-                document.getElementById('sol-price').textContent = '$' + solPrice.toLocaleString('en-US', {maximumFractionDigits: 2});
-                document.getElementById('sol-change').textContent = (solChange > 0 ? '↑' : '↓') + ' ' + Math.abs(solChange).toFixed(2) + '%';
-                document.getElementById('sol-change').className = 'card-change ' + (solChange > 0 ? 'positive' : 'negative');
-
-                return { btc: btcPrice, eth: ethPrice, sol: solPrice };
+                if (data.success && data.data) {
+                    data.data.forEach(p => {
+                        const change = p.change24h || 0;
+                        const changeColor = change > 0 ? 'positive' : 'negative';
+                        const changeText = (change > 0 ? '↑' : '↓') + ' ' + Math.abs(change).toFixed(2) + '%';
+                        
+                        if (p.symbol === 'BITCOIN') {
+                            document.getElementById('btc-price').textContent = '$' + p.price.toLocaleString('en-US', {maximumFractionDigits: 0});
+                            document.getElementById('btc-change').textContent = changeText;
+                            document.getElementById('btc-change').className = 'card-change ' + changeColor;
+                        } else if (p.symbol === 'ETHEREUM') {
+                            document.getElementById('eth-price').textContent = '$' + p.price.toLocaleString('en-US', {maximumFractionDigits: 0});
+                            document.getElementById('eth-change').textContent = changeText;
+                            document.getElementById('eth-change').className = 'card-change ' + changeColor;
+                        } else if (p.symbol === 'SOLANA') {
+                            document.getElementById('sol-price').textContent = '$' + p.price.toLocaleString('en-US', {maximumFractionDigits: 2});
+                            document.getElementById('sol-change').textContent = changeText;
+                            document.getElementById('sol-change').className = 'card-change ' + changeColor;
+                        }
+                    });
+                }
             } catch (error) {
                 console.error('Error fetching prices:', error);
                 document.getElementById('btc-price').textContent = 'Error';
@@ -134,31 +161,19 @@
                 const symbols = ['BTC', 'ETH', 'SOL'];
                 
                 for (const symbol of symbols) {
-                    const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}USDT`);
+                    const response = await fetch(API_BASE + '/signals?symbol=' + symbol);
                     const data = await response.json();
                     
-                    const change = parseFloat(data.priceChangePercent);
-                    let action = 'HOLD';
-                    let score = 50;
-                    
-                    if (change > 5) {
-                        action = 'BUY';
-                        score = 75;
-                    } else if (change > 2) {
-                        action = 'BUY';
-                        score = 65;
-                    } else if (change < -5) {
-                        action = 'SELL';
-                        score = 25;
-                    } else if (change < -2) {
-                        action = 'SELL';
-                        score = 35;
+                    if (data.success && data.data) {
+                        const action = data.data.action;
+                        const score = data.data.score;
+                        const color = action === 'BUY' ? '#4ade80' : action === 'SELL' ? '#ff4444' : '#ffd700';
+                        
+                        const lowerSymbol = symbol.toLowerCase();
+                        document.getElementById(`signal-${lowerSymbol}-action`).textContent = action;
+                        document.getElementById(`signal-${lowerSymbol}-action`).style.color = color;
+                        document.getElementById(`signal-${lowerSymbol}-score`).textContent = `Score: ${score} | Confidence: ${data.data.confidence}`;
                     }
-                    
-                    const lowerSymbol = symbol.toLowerCase();
-                    document.getElementById(`signal-${lowerSymbol}-action`).textContent = action;
-                    document.getElementById(`signal-${lowerSymbol}-action`).style.color = action === 'BUY' ? '#4ade80' : action === 'SELL' ? '#ff4444' : '#ffd700';
-                    document.getElementById(`signal-${lowerSymbol}-score`).textContent = `Score: ${score}`;
                 }
             } catch (error) {
                 console.error('Error fetching signals:', error);
@@ -167,43 +182,22 @@
 
         async function getWhales() {
             try {
-                const whalesData = [
-                    {
-                        amount: 2500,
-                        token: 'BTC',
-                        from: 'Binance',
-                        to: 'Unknown Wallet',
-                        type: 'OUTFLOW',
-                        value: '$105.8M'
-                    },
-                    {
-                        amount: 50000,
-                        token: 'ETH',
-                        from: 'Kraken',
-                        to: 'Cold Wallet',
-                        type: 'OUTFLOW',
-                        value: '$114M'
-                    },
-                    {
-                        amount: 1000000,
-                        token: 'USDT',
-                        from: 'Unknown',
-                        to: 'Exchange',
-                        type: 'INFLOW',
-                        value: '$1M'
-                    }
-                ];
-
-                let html = '<table style="width: 100%; border-collapse: collapse;">';
-                html += '<tr style="border-bottom: 1px solid #ffd700;"><th style="text-align: left; padding: 10px; color: #ffd700;">Amount</th><th style="text-align: left; padding: 10px; color: #ffd700;">From</th><th style="text-align: left; padding: 10px; color: #ffd700;">To</th><th style="text-align: left; padding: 10px; color: #ffd700;">Type</th><th style="text-align: left; padding: 10px; color: #ffd700;">Value</th></tr>';
+                const response = await fetch(API_BASE + '/whales');
+                const data = await response.json();
                 
-                whalesData.forEach(whale => {
-                    const typeColor = whale.type === 'OUTFLOW' ? '#4ade80' : '#ff4444';
-                    html += `<tr style="border-bottom: 1px solid #333;"><td style="padding: 10px;">${whale.amount} ${whale.token}</td><td style="padding: 10px;">${whale.from}</td><td style="padding: 10px;">${whale.to}</td><td style="padding: 10px; color: ${typeColor};">${whale.type}</td><td style="padding: 10px;">${whale.value}</td></tr>`;
-                });
-                
-                html += '</table>';
-                document.getElementById('whales-container').innerHTML = html;
+                if (data.success && data.data) {
+                    let html = '<table style="width: 100%; border-collapse: collapse;">';
+                    html += '<tr style="border-bottom: 1px solid #ffd700;"><th style="text-align: left; padding: 10px; color: #ffd700;">Amount</th><th style="text-align: left; padding: 10px; color: #ffd700;">From</th><th style="text-align: left; padding: 10px; color: #ffd700;">To</th><th style="text-align: left; padding: 10px; color: #ffd700;">Type</th><th style="text-align: left; padding: 10px; color: #ffd700;">Value</th></tr>';
+                    
+                    data.data.forEach(whale => {
+                        const typeColor = whale.type === 'OUTFLOW' ? '#4ade80' : '#ff4444';
+                        const value = '$' + (whale.usdValue / 1000000).toFixed(1) + 'M';
+                        html += `<tr style="border-bottom: 1px solid #333;"><td style="padding: 10px;">${whale.amount} ${whale.token}</td><td style="padding: 10px;">${whale.from}</td><td style="padding: 10px;">${whale.to}</td><td style="padding: 10px; color: ${typeColor};">${whale.type}</td><td style="padding: 10px;">${value}</td></tr>`;
+                    });
+                    
+                    html += '</table>';
+                    document.getElementById('whales-container').innerHTML = html;
+                }
             } catch (error) {
                 console.error('Error fetching whales:', error);
                 document.getElementById('whales-container').innerHTML = '<div class="error">Failed to load whale data</div>';
@@ -211,12 +205,14 @@
         }
 
         async function init() {
+            await checkBackendStatus();
             await getPrices();
             await getSignals();
             await getWhales();
             
             // Refresh every 30 seconds
             setInterval(async () => {
+                await checkBackendStatus();
                 await getPrices();
                 await getSignals();
             }, 30000);
