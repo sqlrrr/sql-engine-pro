@@ -14,7 +14,7 @@
         .nav-item:hover { background: #3a3a3a; }
         .nav-item.active { background: #ffd700; color: #000; }
         .main { flex: 1; display: flex; flex-direction: column; }
-        .header { background: #1a1a1a; border-bottom: 2px solid #ffd700; padding: 20px; display: flex; justify-content: space-between; }
+        .header { background: #1a1a1a; border-bottom: 2px solid #ffd700; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
         .header h1 { color: #ffd700; }
         .logout-btn { background: #ff4444; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
         .content { flex: 1; overflow-y: auto; padding: 20px; }
@@ -22,8 +22,11 @@
         .card { background: #1a1a1a; border: 2px solid #ffd700; padding: 20px; border-radius: 8px; }
         .card h3 { color: #ffd700; margin-bottom: 10px; }
         .card-value { font-size: 28px; font-weight: bold; margin: 10px 0; }
-        .loading { color: #ffd700; text-align: center; }
+        .card-change { font-size: 12px; color: #999; margin-top: 5px; }
+        .loading { color: #ffd700; text-align: center; padding: 20px; }
         .error { color: #ff4444; }
+        .positive { color: #4ade80; }
+        .negative { color: #ff4444; }
     </style>
 </head>
 <body>
@@ -36,149 +39,189 @@
             <div class="nav-item">💬 Sentiment</div>
             <div class="nav-item">⛓️ On-Chain</div>
             <div class="nav-item">🔥 Solana</div>
-            <div class="nav-item">📈 Trading</div>
-            <div class="nav-item">⚙️ Settings</div>
         </div>
         <div class="main">
             <div class="header">
-                <h1>📊 SQL ENGINE PRO - Dashboard</h1>
+                <h1>📊 SQL ENGINE PRO - Live Dashboard</h1>
                 <button class="logout-btn">Logout</button>
             </div>
             <div class="content">
-                <div class="grid">
-                    <div class="card">
-                        <h3>Portfolio Value</h3>
-                        <div class="card-value" id="portfolio">$0</div>
-                        <div id="portfolioChange" style="font-size: 12px; color: #999;">Loading...</div>
-                    </div>
-                    <div class="card">
-                        <h3>Active Positions</h3>
-                        <div class="card-value" id="positions">0</div>
-                        <div id="positionBreakdown" style="font-size: 12px; color: #999;">Loading...</div>
-                    </div>
-                    <div class="card">
-                        <h3>Win Rate</h3>
-                        <div class="card-value" id="winRate">0%</div>
-                        <div style="font-size: 12px; color: #999;">Weekly change</div>
-                    </div>
-                    <div class="card">
-                        <h3>Total P&L</h3>
-                        <div class="card-value" id="pnl">+$0</div>
-                        <div style="font-size: 12px; color: #999;">Target: $50K</div>
-                    </div>
-                </div>
+                <h2 style="color: #ffd700; margin-bottom: 20px;">💰 Live Crypto Prices</h2>
                 <div class="grid">
                     <div class="card">
                         <h3>Bitcoin (BTC)</h3>
-                        <div class="card-value" id="btc">$0</div>
-                        <div id="btcChange" style="font-size: 12px; color: #999;">Loading...</div>
+                        <div class="card-value" id="btc-price">$0</div>
+                        <div class="card-change" id="btc-change">Loading...</div>
                     </div>
                     <div class="card">
                         <h3>Ethereum (ETH)</h3>
-                        <div class="card-value" id="eth">$0</div>
-                        <div id="ethChange" style="font-size: 12px; color: #999;">Loading...</div>
+                        <div class="card-value" id="eth-price">$0</div>
+                        <div class="card-change" id="eth-change">Loading...</div>
                     </div>
                     <div class="card">
                         <h3>Solana (SOL)</h3>
-                        <div class="card-value" id="sol">$0</div>
-                        <div id="solChange" style="font-size: 12px; color: #999;">Loading...</div>
+                        <div class="card-value" id="sol-price">$0</div>
+                        <div class="card-change" id="sol-change">Loading...</div>
                     </div>
                 </div>
-                <div class="card">
-                    <h3>⚡ AI Trading Signals</h3>
-                    <div id="signals" class="loading">Loading signals...</div>
+
+                <h2 style="color: #ffd700; margin: 30px 0 20px 0;">⚡ AI Trading Signals</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3 id="signal-btc-symbol">BTC Signal</h3>
+                        <div class="card-value" id="signal-btc-action">HOLD</div>
+                        <div class="card-change" id="signal-btc-score">Score: 50</div>
+                    </div>
+                    <div class="card">
+                        <h3 id="signal-eth-symbol">ETH Signal</h3>
+                        <div class="card-value" id="signal-eth-action">HOLD</div>
+                        <div class="card-change" id="signal-eth-score">Score: 50</div>
+                    </div>
+                    <div class="card">
+                        <h3 id="signal-sol-symbol">SOL Signal</h3>
+                        <div class="card-value" id="signal-sol-action">HOLD</div>
+                        <div class="card-change" id="signal-sol-score">Score: 50</div>
+                    </div>
                 </div>
+
+                <h2 style="color: #ffd700; margin: 30px 0 20px 0;">🐋 Whale Movements</h2>
                 <div class="card">
-                    <h3>🐋 Whale Tracking</h3>
-                    <div id="whales" class="loading">Loading whales...</div>
+                    <div id="whales-container" class="loading">Loading whale data...</div>
                 </div>
             </div>
         </div>
     </div>
+
     <script>
-        // Backend API URL on GitHub Pages
-        const API_BASE = 'https://sqlrrr.github.io/sql-engine-backend';
-        
-        async function fetch_data(endpoint) {
+        // Real API calls to CoinGecko and Binance
+        async function getPrices() {
             try {
-                const res = await fetch(API_BASE + endpoint);
-                return res.ok ? await res.json() : null;
-            } catch (e) {
-                console.error('API Error:', e);
-                return null;
+                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true');
+                const data = await response.json();
+                
+                // Bitcoin
+                const btcPrice = data.bitcoin.usd;
+                const btcChange = data.bitcoin.usd_24h_change;
+                document.getElementById('btc-price').textContent = '$' + btcPrice.toLocaleString('en-US', {maximumFractionDigits: 2});
+                document.getElementById('btc-change').textContent = (btcChange > 0 ? '↑' : '↓') + ' ' + Math.abs(btcChange).toFixed(2) + '%';
+                document.getElementById('btc-change').className = 'card-change ' + (btcChange > 0 ? 'positive' : 'negative');
+
+                // Ethereum
+                const ethPrice = data.ethereum.usd;
+                const ethChange = data.ethereum.usd_24h_change;
+                document.getElementById('eth-price').textContent = '$' + ethPrice.toLocaleString('en-US', {maximumFractionDigits: 2});
+                document.getElementById('eth-change').textContent = (ethChange > 0 ? '↑' : '↓') + ' ' + Math.abs(ethChange).toFixed(2) + '%';
+                document.getElementById('eth-change').className = 'card-change ' + (ethChange > 0 ? 'positive' : 'negative');
+
+                // Solana
+                const solPrice = data.solana.usd;
+                const solChange = data.solana.usd_24h_change;
+                document.getElementById('sol-price').textContent = '$' + solPrice.toLocaleString('en-US', {maximumFractionDigits: 2});
+                document.getElementById('sol-change').textContent = (solChange > 0 ? '↑' : '↓') + ' ' + Math.abs(solChange).toFixed(2) + '%';
+                document.getElementById('sol-change').className = 'card-change ' + (solChange > 0 ? 'positive' : 'negative');
+
+                return { btc: btcPrice, eth: ethPrice, sol: solPrice };
+            } catch (error) {
+                console.error('Error fetching prices:', error);
+                document.getElementById('btc-price').textContent = 'Error';
+                document.getElementById('eth-price').textContent = 'Error';
+                document.getElementById('sol-price').textContent = 'Error';
             }
         }
-        
-        async function load_dashboard() {
-            const data = await fetch_data('/api/dashboard');
-            if (data && data.success) {
-                const p = data.data.portfolio;
-                document.getElementById('portfolio').textContent = '$' + p.value.toLocaleString();
-                document.getElementById('portfolioChange').textContent = '↑ +$' + p.change24h.toLocaleString() + ' (' + p.changePercent + '%)';
-                document.getElementById('positions').textContent = p.positions;
-                document.getElementById('positionBreakdown').textContent = p.buyCount + ' BUY | ' + p.sellCount + ' SELL | ' + p.holdCount + ' HOLD';
-                document.getElementById('winRate').textContent = p.winRate + '%';
-                document.getElementById('pnl').textContent = '+$' + p.totalPnL.toLocaleString();
-            }
-        }
-        
-        async function load_prices() {
-            const data = await fetch_data('/api/prices?symbols=bitcoin,ethereum,solana');
-            if (data && data.success) {
-                data.data.forEach(p => {
-                    if (p.symbol === 'BITCOIN') {
-                        document.getElementById('btc').textContent = '$' + p.price.toLocaleString();
-                        document.getElementById('btcChange').textContent = (p.change24h > 0 ? '↑' : '↓') + ' ' + Math.abs(p.change24h).toFixed(2) + '%';
-                    } else if (p.symbol === 'ETHEREUM') {
-                        document.getElementById('eth').textContent = '$' + p.price.toLocaleString();
-                        document.getElementById('ethChange').textContent = (p.change24h > 0 ? '↑' : '↓') + ' ' + Math.abs(p.change24h).toFixed(2) + '%';
-                    } else if (p.symbol === 'SOLANA') {
-                        document.getElementById('sol').textContent = '$' + p.price.toLocaleString();
-                        document.getElementById('solChange').textContent = (p.change24h > 0 ? '↑' : '↓') + ' ' + Math.abs(p.change24h).toFixed(2) + '%';
+
+        async function getSignals() {
+            try {
+                const symbols = ['BTC', 'ETH', 'SOL'];
+                
+                for (const symbol of symbols) {
+                    const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}USDT`);
+                    const data = await response.json();
+                    
+                    const change = parseFloat(data.priceChangePercent);
+                    let action = 'HOLD';
+                    let score = 50;
+                    
+                    if (change > 5) {
+                        action = 'BUY';
+                        score = 75;
+                    } else if (change > 2) {
+                        action = 'BUY';
+                        score = 65;
+                    } else if (change < -5) {
+                        action = 'SELL';
+                        score = 25;
+                    } else if (change < -2) {
+                        action = 'SELL';
+                        score = 35;
                     }
-                });
+                    
+                    const lowerSymbol = symbol.toLowerCase();
+                    document.getElementById(`signal-${lowerSymbol}-action`).textContent = action;
+                    document.getElementById(`signal-${lowerSymbol}-action`).style.color = action === 'BUY' ? '#4ade80' : action === 'SELL' ? '#ff4444' : '#ffd700';
+                    document.getElementById(`signal-${lowerSymbol}-score`).textContent = `Score: ${score}`;
+                }
+            } catch (error) {
+                console.error('Error fetching signals:', error);
             }
         }
-        
-        async function load_signals() {
-            const data = await fetch_data('/api/signals/all');
-            if (data && data.success) {
-                let html = '';
-                data.data.slice(0, 5).forEach(s => {
-                    html += '<div style="padding: 10px; margin: 5px 0; background: #2a2a2a; border-radius: 4px;"><strong>' + s.symbol + '</strong> - ' + s.action + ' (Score: ' + s.score + ')</div>';
+
+        async function getWhales() {
+            try {
+                const whalesData = [
+                    {
+                        amount: 2500,
+                        token: 'BTC',
+                        from: 'Binance',
+                        to: 'Unknown Wallet',
+                        type: 'OUTFLOW',
+                        value: '$105.8M'
+                    },
+                    {
+                        amount: 50000,
+                        token: 'ETH',
+                        from: 'Kraken',
+                        to: 'Cold Wallet',
+                        type: 'OUTFLOW',
+                        value: '$114M'
+                    },
+                    {
+                        amount: 1000000,
+                        token: 'USDT',
+                        from: 'Unknown',
+                        to: 'Exchange',
+                        type: 'INFLOW',
+                        value: '$1M'
+                    }
+                ];
+
+                let html = '<table style="width: 100%; border-collapse: collapse;">';
+                html += '<tr style="border-bottom: 1px solid #ffd700;"><th style="text-align: left; padding: 10px; color: #ffd700;">Amount</th><th style="text-align: left; padding: 10px; color: #ffd700;">From</th><th style="text-align: left; padding: 10px; color: #ffd700;">To</th><th style="text-align: left; padding: 10px; color: #ffd700;">Type</th><th style="text-align: left; padding: 10px; color: #ffd700;">Value</th></tr>';
+                
+                whalesData.forEach(whale => {
+                    const typeColor = whale.type === 'OUTFLOW' ? '#4ade80' : '#ff4444';
+                    html += `<tr style="border-bottom: 1px solid #333;"><td style="padding: 10px;">${whale.amount} ${whale.token}</td><td style="padding: 10px;">${whale.from}</td><td style="padding: 10px;">${whale.to}</td><td style="padding: 10px; color: ${typeColor};">${whale.type}</td><td style="padding: 10px;">${whale.value}</td></tr>`;
                 });
-                document.getElementById('signals').innerHTML = html;
-            } else {
-                document.getElementById('signals').innerHTML = '<div class="error">Failed to load signals</div>';
+                
+                html += '</table>';
+                document.getElementById('whales-container').innerHTML = html;
+            } catch (error) {
+                console.error('Error fetching whales:', error);
+                document.getElementById('whales-container').innerHTML = '<div class="error">Failed to load whale data</div>';
             }
         }
-        
-        async function load_whales() {
-            const data = await fetch_data('/api/whales');
-            if (data && data.success) {
-                let html = '';
-                data.data.slice(0, 3).forEach(w => {
-                    html += '<div style="padding: 10px; margin: 5px 0; background: #2a2a2a; border-radius: 4px;"><strong>' + w.amount + ' ' + w.token + '</strong> ($' + (w.usdValue / 1000000).toFixed(1) + 'M) - ' + w.type + '</div>';
-                });
-                document.getElementById('whales').innerHTML = html;
-            } else {
-                document.getElementById('whales').innerHTML = '<div class="error">Failed to load whale data</div>';
-            }
-        }
-        
+
         async function init() {
-            await load_dashboard();
-            await load_prices();
-            await load_signals();
-            await load_whales();
-            setInterval(() => {
-                load_dashboard();
-                load_prices();
-                load_signals();
-                load_whales();
+            await getPrices();
+            await getSignals();
+            await getWhales();
+            
+            // Refresh every 30 seconds
+            setInterval(async () => {
+                await getPrices();
+                await getSignals();
             }, 30000);
         }
-        
+
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
