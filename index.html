@@ -85,3 +85,13 @@ Error generating stack: `+l.message+`
   </body>
 
 </html>
+<script>
+  // Handle SPA routing redirects from 404.html
+  (function(){
+    var redirect = sessionStorage.redirect;
+    delete sessionStorage.redirect;
+    if (redirect && redirect !== location.href) {
+      history.replaceState(null, null, redirect);
+    }
+  })();
+</script>
