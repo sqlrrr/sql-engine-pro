@@ -23,7 +23,7 @@
         .card h3 { color: #ffd700; margin-bottom: 10px; }
         .card-value { font-size: 28px; font-weight: bold; margin: 10px 0; }
         .loading { color: #ffd700; text-align: center; }
-        .error { color: #ff4444; background: #2a1a1a; padding: 10px; border-radius: 4px; }
+        .error { color: #ff4444; }
     </style>
 </head>
 <body>
@@ -96,20 +96,21 @@
         </div>
     </div>
     <script>
-        const API_BASE = 'http://localhost:3000/api';
+        // Backend API URL on GitHub Pages
+        const API_BASE = 'https://sqlrrr.github.io/sql-engine-backend';
         
         async function fetch_data(endpoint) {
             try {
                 const res = await fetch(API_BASE + endpoint);
                 return res.ok ? await res.json() : null;
             } catch (e) {
-                console.error(e);
+                console.error('API Error:', e);
                 return null;
             }
         }
         
         async function load_dashboard() {
-            const data = await fetch_data('/dashboard');
+            const data = await fetch_data('/api/dashboard');
             if (data && data.success) {
                 const p = data.data.portfolio;
                 document.getElementById('portfolio').textContent = '$' + p.value.toLocaleString();
@@ -122,7 +123,7 @@
         }
         
         async function load_prices() {
-            const data = await fetch_data('/prices?symbols=bitcoin,ethereum,solana');
+            const data = await fetch_data('/api/prices?symbols=bitcoin,ethereum,solana');
             if (data && data.success) {
                 data.data.forEach(p => {
                     if (p.symbol === 'BITCOIN') {
@@ -140,24 +141,28 @@
         }
         
         async function load_signals() {
-            const data = await fetch_data('/signals/all');
+            const data = await fetch_data('/api/signals/all');
             if (data && data.success) {
                 let html = '';
                 data.data.slice(0, 5).forEach(s => {
                     html += '<div style="padding: 10px; margin: 5px 0; background: #2a2a2a; border-radius: 4px;"><strong>' + s.symbol + '</strong> - ' + s.action + ' (Score: ' + s.score + ')</div>';
                 });
                 document.getElementById('signals').innerHTML = html;
+            } else {
+                document.getElementById('signals').innerHTML = '<div class="error">Failed to load signals</div>';
             }
         }
         
         async function load_whales() {
-            const data = await fetch_data('/whales');
+            const data = await fetch_data('/api/whales');
             if (data && data.success) {
                 let html = '';
                 data.data.slice(0, 3).forEach(w => {
                     html += '<div style="padding: 10px; margin: 5px 0; background: #2a2a2a; border-radius: 4px;"><strong>' + w.amount + ' ' + w.token + '</strong> ($' + (w.usdValue / 1000000).toFixed(1) + 'M) - ' + w.type + '</div>';
                 });
                 document.getElementById('whales').innerHTML = html;
+            } else {
+                document.getElementById('whales').innerHTML = '<div class="error">Failed to load whale data</div>';
             }
         }
         
