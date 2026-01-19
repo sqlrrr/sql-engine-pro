@@ -224,3 +224,27 @@ img, video, canvas, svg {
   max-width: 100%;
   height: auto;
 }
+
+/* Disable text selection globally to prevent unwanted copying */
+@layer base {
+  html, body {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+  }
+
+  /* Allow selection only for specific data elements that might need to be copied */
+  .selectable, 
+  code, 
+  pre, 
+  input, 
+  textarea,
+  [contenteditable="true"],
+  .price-value,
+  .signal-score,
+  .whale-data-cell {
+    -webkit-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+}
